@@ -129,10 +129,16 @@ func (l *LinkedList) RemoveFrom(toRemove *ListElement) {
 }
 
 func (l *LinkedList) PrintLn() {
-	fmt.Println("Size: ", l.size)
-	for e := l.first; e != nil; e = e.next {
-		fmt.Println(e.Value)
+	fmt.Println("List Size: ", l.size)
+	fmt.Print("[")
+	for i, e := 0, l.first; e != nil; e = e.next {
+		fmt.Print(e.Value)
+		if i != l.size-1 {
+			fmt.Print(", ")
+		}
+		i++
 	}
+	fmt.Println("]")
 }
 
 func NewLinkedList() List {

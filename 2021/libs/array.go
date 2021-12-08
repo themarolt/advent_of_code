@@ -15,7 +15,7 @@ func qsPartition(arr []int64, l, h, pI int) int {
 	pivot := arr[pI]
 
 	for true {
-		for arr[left] < pivot {
+		for arr[left] <= pivot && left <= right {
 			left++
 		}
 
