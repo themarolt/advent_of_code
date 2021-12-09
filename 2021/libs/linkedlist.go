@@ -2,6 +2,8 @@ package libs
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 type ListElement struct {
@@ -18,7 +20,8 @@ type List interface {
 	Get(i int) *ListElement
 	Add(at *ListElement, data interface{}) *ListElement
 	Push(data interface{}) *ListElement
-	RemoveFrom(toRemove *ListElement)
+	Remove(toRemove *ListElement)
+	Contains(data interface{}) bool
 	PrintLn()
 }
 
@@ -34,6 +37,16 @@ func (e *ListElement) Next() *ListElement {
 
 func (e *ListElement) Prev() *ListElement {
 	return e.prev
+}
+
+func (l *LinkedList) Contains(data interface{}) bool {
+	for el := l.first; el != nil; el = el.next {
+		if el.Value == data {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (l *LinkedList) Size() int {
@@ -109,7 +122,7 @@ func (l *LinkedList) Push(data interface{}) *ListElement {
 	return &newElement
 }
 
-func (l *LinkedList) RemoveFrom(toRemove *ListElement) {
+func (l *LinkedList) Remove(toRemove *ListElement) {
 	if l.size == 1 {
 		l.first = nil
 		l.last = nil
@@ -145,4 +158,24 @@ func NewLinkedList() List {
 	newList := new(LinkedList)
 
 	return newList
+}
+
+func (l *LinkedList) string() string {
+	var sb strings.Builder
+
+	sb.WriteString("Size: ")
+	sb.WriteString(strconv.Itoa(l.size))
+
+	sb.WriteString(" Values: [")
+	for e := l.first; e != nil; e = e.next {
+		str := fmt.Sprintf("%v", e.Value)
+		sb.WriteString(str)
+		if e.next != nil {
+			sb.WriteString(", ")
+		}
+	}
+
+	sb.WriteString("]")
+
+	return sb.String()
 }

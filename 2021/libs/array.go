@@ -66,29 +66,85 @@ func Print2DArray(arr [][]int64) {
 	}
 }
 
-// array:
-// 5 2 8 4 1 9
+func UniqueStrings(arr []string) []string {
+	list := NewLinkedList()
 
-// first step: pick pivot (last element in array) = 9
-// partition sub array 5 2 8 4 1 according to pivot
-// hIndex = 4, lIndex = 0
-// 5 < 9 check lIndex++
-// 2 < 9 check lIndex++
-// 8 < 9 check lIndex++
-// 4 < 9 check lIndex++
-// 1 < 9 check lIndex++
-// lIndex >= hIndex check (5 >= 4)
-// no need to swap pivot and lIndex since same index
-// we have two sub arrays now:
-// [5 2 8 4 1] AND [9]
-// second step: do quicksort for first array [5 2 8 4 1]
-// pivot = 1, pivotIndex = 4
-// partition sub array [5 2 8 4] according to pivot
-// hIndex = 3, lIndex = 0
-// 5 < 1 false do nothing with lIndex go on with hIndex
-// 4 > 1 true hIndex--
-// 8 > 1 true hIndex--
-// 2 > 1 true hIndex--
-// 5 > 1 true hIndex--
-// lIndex >= hIndex check (0 >= -1)
-// swap lIndex and pivot so we have array [1 2 8 4 5]
+	for _, val := range arr {
+		if !list.Contains(val) {
+			list.Push(val)
+		}
+	}
+
+	res := make([]string, list.Size())
+	i := 0
+	for el := list.First(); el != nil; el = el.Next() {
+		res[i] = el.Value.(string)
+		i++
+	}
+
+	return res
+}
+
+type FilterFunction func(interface{}) bool
+
+func FilterStringArray(arr []string, filter FilterFunction) []string {
+	list := NewLinkedList()
+	for _, val := range arr {
+		if filter(val) {
+			list.Push(val)
+		}
+	}
+
+	res := make([]string, list.Size())
+	i := 0
+	for el := list.First(); el != nil; el = el.Next() {
+		res[i] = el.Value.(string)
+		i++
+	}
+
+	return res
+}
+
+func CloneBoolArray(arr []bool) []bool {
+	newArr := make([]bool, len(arr))
+
+	for i, val := range arr {
+		newArr[i] = val
+	}
+
+	return newArr
+}
+
+func BoolArrayCompare(arr1 []bool, arr2 []bool) bool {
+	if len(arr1) == len(arr2) {
+		for i, val := range arr1 {
+			if arr2[i] != val {
+				return false
+			}
+		}
+
+		return true
+	} else {
+		return false
+	}
+}
+
+func RuneArrayContains(arr []rune, target rune) bool {
+	for _, val := range arr {
+		if val == target {
+			return true
+		}
+	}
+
+	return false
+}
+
+func RuneArrayAdd(arr []rune, newEl rune) []rune {
+	newArr := make([]rune, len(arr)+1)
+	for i, e := range arr {
+		newArr[i] = e
+	}
+	newArr[len(arr)] = newEl
+
+	return newArr
+}
