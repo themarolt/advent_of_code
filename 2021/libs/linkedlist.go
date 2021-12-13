@@ -20,6 +20,7 @@ type List interface {
 	Get(i int) *ListElement
 	Add(at *ListElement, data interface{}) *ListElement
 	Push(data interface{}) *ListElement
+	Pop() interface{}
 	Remove(toRemove *ListElement)
 	Contains(data interface{}) bool
 	PrintLn()
@@ -120,6 +121,16 @@ func (l *LinkedList) Push(data interface{}) *ListElement {
 	l.size++
 
 	return &newElement
+}
+
+func (l *LinkedList) Pop() interface{} {
+	if l.size != 0 {
+		val := l.last.Value
+		l.Remove(l.last)
+		return val
+	}
+
+	return nil
 }
 
 func (l *LinkedList) Remove(toRemove *ListElement) {

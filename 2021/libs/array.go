@@ -49,7 +49,7 @@ func QuickSort(arr []int64) {
 	quickSort(arr, 0, len(arr)-1)
 }
 
-func PrintArray(arr []int64) {
+func PrintInt64Array(arr []int64) {
 	fmt.Print("[")
 	for i := 0; i < len(arr); i++ {
 		fmt.Print(arr[i])
@@ -60,9 +60,22 @@ func PrintArray(arr []int64) {
 	fmt.Print("]\n")
 }
 
-func Print2DArray(arr [][]int64) {
+func PrintInt642DArray(arr [][]int64) {
 	for y := 0; y < len(arr); y++ {
-		PrintArray(arr[y])
+		PrintInt64Array(arr[y])
+	}
+}
+
+func PrintBool2DArray(arr [][]bool) {
+	for y := 0; y < len(arr[0]); y++ {
+		for x := 0; x < len(arr); x++ {
+			if arr[x][y] {
+				fmt.Print("#")
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
 	}
 }
 
