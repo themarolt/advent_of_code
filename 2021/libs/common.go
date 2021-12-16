@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+func IsBitSet(bitN int, val uint64) bool {
+	return (val>>bitN)&1 == 1
+}
+
 type IntPoint struct {
 	X, Y int
 }
