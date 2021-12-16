@@ -22,6 +22,7 @@ type List interface {
 	Push(data interface{}) *ListElement
 	Remove(toRemove *ListElement)
 	Contains(data interface{}) bool
+	Clone() List
 	PrintLn()
 }
 
@@ -37,6 +38,16 @@ func (e *ListElement) Next() *ListElement {
 
 func (e *ListElement) Prev() *ListElement {
 	return e.prev
+}
+
+func (l *LinkedList) Clone() List {
+	newList := NewLinkedList()
+
+	for el := l.first; el != nil; el = el.next {
+		newList.Push(el.Value)
+	}
+
+	return newList
 }
 
 func (l *LinkedList) Contains(data interface{}) bool {
