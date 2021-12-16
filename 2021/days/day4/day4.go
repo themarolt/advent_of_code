@@ -86,7 +86,7 @@ func part1() {
 		bingoNumbers[i] = val
 	}
 	fmt.Println("Bingo Numbers:")
-	libs.PrintArray(bingoNumbers)
+	libs.PrintInt64Array(bingoNumbers)
 
 	boardCount := (len(lines) - 1) / 6
 	fmt.Println("We have ", boardCount, " boards!")
@@ -131,7 +131,7 @@ func part1() {
 	for i := 0; i < len(boards); i++ {
 		data := boards[i]
 
-		libs.Print2DArray(data)
+		libs.PrintInt642DArray(data)
 		fmt.Println()
 	}
 
@@ -162,7 +162,7 @@ func part2() {
 		bingoNumbers[i] = val
 	}
 	fmt.Println("Bingo Numbers:")
-	libs.PrintArray(bingoNumbers)
+	libs.PrintInt64Array(bingoNumbers)
 
 	boardCount := (len(lines) - 1) / 6
 	fmt.Println("We have ", boardCount, " boards!")
