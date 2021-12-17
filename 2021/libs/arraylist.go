@@ -17,7 +17,7 @@ func (l *ArrayList) Get(i int) interface{} {
 }
 
 func (l *ArrayList) Contains(data interface{}) bool {
-	for i := 0; i < l.Size(); l++ {
+	for i := 0; i < l.Size(); i++ {
 		if l.array[i] == data {
 			return true
 		}
