@@ -4,17 +4,45 @@ import (
 	"aoc2021/libs"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const (
-	LITERAL_VALUE_ID = 4
+	SUM_ID           = iota
+	PRODUCT_ID       = iota
+	MINIMUM_ID       = iota
+	MAXIMUM_ID       = iota
+	LITERAL_VALUE_ID = iota
+	GREATER_THAN_ID  = iota
+	LESS_THAN_ID     = iota
+	EQUAL_TO_ID      = iota
 )
 
+func getTypeIdDesc(id uint8) string {
+	switch id {
+	case SUM_ID:
+		return fmt.Sprintf("SUM (%v)", id)
+	case PRODUCT_ID:
+		return fmt.Sprintf("PRODUCT (%v)", id)
+	case MINIMUM_ID:
+		return fmt.Sprintf("MINIMUM (%v)", id)
+	case MAXIMUM_ID:
+		return fmt.Sprintf("MAXIMUM (%v)", id)
+	case LITERAL_VALUE_ID:
+		return fmt.Sprintf("LITERAL (%v)", id)
+	case GREATER_THAN_ID:
+		return fmt.Sprintf("GREATER THAN (%v)", id)
+	case LESS_THAN_ID:
+		return fmt.Sprintf("LESS THAN (%v)", id)
+	case EQUAL_TO_ID:
+		return fmt.Sprintf("EQUAL TO (%v)", id)
+	}
+
+	panic("incorrect type id")
+}
+
 type Packet struct {
-	parent *Packet
-
-	id int
-
+	parent  *Packet
 	version uint8
 	typeId  uint8
 
@@ -25,6 +53,17 @@ type Packet struct {
 	literalValue []uint8
 
 	subpackets []*Packet
+}
+
+func getLiteralValue(val []uint8) int64 {
+	initial := int64(0)
+
+	for _, v := range val {
+		initial = initial << 8
+		initial = initial | int64(v)
+	}
+
+	return initial
 }
 
 func readVersion(index int, bytes []uint8) (uint8, int) {
@@ -72,6 +111,11 @@ func readLiteral(index int, bytes []uint8) ([]uint8, int) {
 		lastGroupMask := uint8(1 << 4)
 		lastGroupBit := lastGroupMask & val
 
+		// clear last group bit if set
+		if lastGroupBit != 0 {
+			val = val & 15
+		}
+
 		if firstHalf {
 			res = append(res, val<<4)
 			firstHalf = false
@@ -102,8 +146,6 @@ func readLiteral(index int, bytes []uint8) ([]uint8, int) {
 	return res, newIndex
 }
 
-var totalPackets int = 0
-
 func countSubpackets(packet *Packet) int {
 	if len(packet.subpackets) == 0 {
 		return 0
@@ -121,14 +163,6 @@ func countSubpackets(packet *Packet) int {
 func decodePacket(startIndex int, bytes []uint8, parent *Packet) (*Packet, int) {
 	packet := new(Packet)
 	packet.parent = parent
-
-	totalPackets++
-	packet.id = totalPackets
-	fmt.Print("Processing packet with id ", packet.id)
-	if parent != nil {
-		fmt.Print(" (", parent.id, ")")
-	}
-	fmt.Println()
 
 	var value uint8
 	index := startIndex
@@ -171,8 +205,7 @@ func decodePacket(startIndex int, bytes []uint8, parent *Packet) (*Packet, int) 
 				packet.subpackets = append(packet.subpackets, subpacket)
 				newIndex += childBitsRead
 
-				count += 1 + countSubpackets(subpacket)
-				fmt.Println("packet limit", subpacketCount, "count", count)
+				count++
 			}
 
 			return packet, newIndex - startIndex
@@ -182,11 +215,129 @@ func decodePacket(startIndex int, bytes []uint8, parent *Packet) (*Packet, int) 
 	}
 }
 
-func part1(chars []rune) {
+func part1(bytes []uint8) *Packet {
+	packet, _ := decodePacket(0, bytes, nil)
+	sum := sumVersions(packet)
+	fmt.Println("Total version sum:", sum)
+
+	return packet
+}
+
+func sumVersions(packet *Packet) int {
+	versionSum := int(packet.version)
+
+	for _, sub := range packet.subpackets {
+		versionSum += sumVersions(sub)
+	}
+
+	return versionSum
+}
+
+func bytesToString(bytes []uint8) string {
+	res := ""
+
+	for _, bits := range bytes {
+		tmp := fmt.Sprintf("%08b", bits)
+		res += tmp
+	}
+
+	return res
+}
+
+func printPacket(packet *Packet, indent int) {
+	padding := strings.Repeat(" ", indent)
+	fmt.Printf("%vVer: %v, TypeID: %v, OpMode: %v, SubBits: %v, SubCount: %v (%v), Literal: %v, Value: %v\n",
+		padding, packet.version, getTypeIdDesc(packet.typeId), packet.operatorMode, packet.subpacketBits, packet.subpacketCount, len(packet.subpackets), bytesToString(packet.literalValue), packet.GetValue())
+
+	for _, sub := range packet.subpackets {
+		printPacket(sub, indent+2)
+	}
+}
+
+func (p *Packet) GetValue() int64 {
+	res := int64(0)
+
+	switch p.typeId {
+	case SUM_ID:
+		for _, sub := range p.subpackets {
+			res += sub.GetValue()
+		}
+	case PRODUCT_ID:
+		if len(p.subpackets) == 1 {
+			res = p.subpackets[0].GetValue()
+		} else {
+			res = 1
+			for _, sub := range p.subpackets {
+				res = res * sub.GetValue()
+			}
+		}
+	case MINIMUM_ID:
+		res = p.subpackets[0].GetValue()
+
+		for _, sub := range p.subpackets {
+			val := sub.GetValue()
+			if res > val {
+				res = val
+			}
+		}
+	case MAXIMUM_ID:
+		res = p.subpackets[0].GetValue()
+
+		for _, sub := range p.subpackets {
+			val := sub.GetValue()
+			if res < val {
+				res = val
+			}
+		}
+	case LITERAL_VALUE_ID:
+		res = getLiteralValue(p.literalValue)
+	case GREATER_THAN_ID:
+		first := p.subpackets[0].GetValue()
+		second := p.subpackets[1].GetValue()
+
+		if first > second {
+			res = 1
+		} else {
+			res = 0
+		}
+	case LESS_THAN_ID:
+		first := p.subpackets[0].GetValue()
+		second := p.subpackets[1].GetValue()
+
+		if first < second {
+			res = 1
+		} else {
+			res = 0
+		}
+	case EQUAL_TO_ID:
+		first := p.subpackets[0].GetValue()
+		second := p.subpackets[1].GetValue()
+
+		if first == second {
+			res = 1
+		} else {
+			res = 0
+		}
+	default:
+		panic("unknown type id")
+	}
+
+	return res
+}
+
+func part2(rootPacket *Packet) {
+	// print hierarchy
+	printPacket(rootPacket, 0)
+	fmt.Println("Value: ", rootPacket.GetValue())
+}
+
+func Run() {
+	input := libs.ReadTxtFileLines("days/day16/input.txt")
+
 	bytes := []uint8(nil)
 
 	firstHalf := true
-	for _, char := range chars {
+	for _, char := range input[0] {
 		num, err := strconv.ParseUint(string(char), 16, 8)
 		if err != nil {
 			panic(err)
@@ -205,69 +356,8 @@ func part1(chars []rune) {
 		}
 	}
 
-	rootPackets := make([]*Packet, 0)
-
-	totalBits := len(bytes) * 8
-
-	index := 0
-	for index < totalBits {
-		// check if we only have zeros left
-		justZeros := true
-		testIndex := index
-		for {
-			bitsLeft := totalBits - testIndex
-			if bitsLeft > 8 {
-				res := libs.GetNextNBits(8, testIndex, bytes)
-				testIndex += 8
-				if res != 0 {
-					justZeros = false
-					break
-				}
-			} else {
-				res := libs.GetNextNBits(bitsLeft, testIndex, bytes)
-				testIndex += bitsLeft
-				if res != 0 {
-					justZeros = false
-					break
-				}
-			}
-
-			if bitsLeft <= 8 {
-				break
-			}
-		}
-
-		if justZeros {
-			break
-		}
-		packet, bits := decodePacket(index, bytes, nil)
-		index += bits
-		rootPackets = append(rootPackets, packet)
-	}
-
-	sum := sumVersions(rootPackets)
-	fmt.Println("Total sum:", sum)
-}
-
-func sumVersions(packets []*Packet) int {
-	versionSum := int(0)
-
-	for _, packet := range packets {
-		versionSum += int(packet.version)
-		if len(packet.subpackets) > 0 {
-			versionSum += sumVersions(packet.subpackets)
-		}
-	}
-
-	return versionSum
-}
-
-func Run() {
-	input := libs.ReadTxtFileLines("days/day16/input.txt")
-
-	chars := []rune(input[0])
-
-	part1(chars)
+	rootPacket := part1(bytes)
+	part2(rootPacket)
 }
 
 /*
